@@ -3,8 +3,8 @@ namespace trace;
 
 use think\Debug;
 use think\Db;
-use app\common\model\TraceLogList;
-use app\common\model\TraceLogData;
+use trace\model\TraceLogList;
+use trace\model\TraceLogData;
 
 class TraceLog
 {
@@ -33,17 +33,17 @@ class TraceLog
         });
     }
 
-    public static function traceInfo($message)
+    public static function info($message)
     {
         self::addTraceLog(TraceLogList::TYPE_INFO, $message);
     }
 
-    public static function traceError($message)
+    public static function error($message)
     {
         self::addTraceLog(TraceLogList::TYPE_ERROR, $message);
     }
 
-    public static function traceWarning($message)
+    public static function warning($message)
     {
         self::addTraceLog(TraceLogList::TYPE_WARNING, $message);
     }
@@ -51,10 +51,15 @@ class TraceLog
 
     private static function addTraceLog($type, $message)
     {
+        $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3);
+        $line = next($backtrace)['line'];
+        $position = next($backtrace)['class'].'::'.current($backtrace)['function'];
         $model = new TraceLogList();
         $model->type = $type;
         $model->method = request()->method();
         $model->route = request()->baseUrl();
+        $model->position = $position;
+        $model->line = $line;
         $content = new TraceLogData();
         $content->params = json_encode(['GET' => request()->get(), 'POST' => request()->post(), 'PUT' => request()->put(), 'DELETE' => request()->delete()]);
         $content->message = json_encode($message);

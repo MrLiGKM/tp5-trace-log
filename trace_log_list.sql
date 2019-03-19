@@ -10,7 +10,7 @@ Target Server Type    : MYSQL
 Target Server Version : 50505
 File Encoding         : 65001
 
-Date: 2019-03-07 13:49:58
+Date: 2019-03-19 16:01:55
 */
 
 SET FOREIGN_KEY_CHECKS=0;
@@ -23,9 +23,12 @@ CREATE TABLE `trace_log_list` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `method` char(10) DEFAULT NULL,
   `route` varchar(255) DEFAULT NULL,
+  `position` varchar(255) NOT NULL,
+  `line` int(11) NOT NULL,
   `type` int(1) NOT NULL,
   `update_time` int(11) NOT NULL,
   `create_time` int(11) NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `type` (`type`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=41 DEFAULT CHARSET=utf8;
+  KEY `type` (`type`) USING BTREE,
+  KEY `route` (`route`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8;

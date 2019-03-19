@@ -1,7 +1,8 @@
 <?php
 namespace trace\model;
 
-use app\common\model\Model;
+use think\Model;
+use trace\model\TraceLogData;
 
 class TraceLogList extends Model
 {
@@ -16,6 +17,13 @@ class TraceLogList extends Model
         'create_time' => 'timestamp',
         'update_time' => 'timestamp',
     ];
+
+    protected static function init()
+    {
+        TraceLogList::event('before_delete', function ($log) {
+            TraceLogData::destroy(['log_id' => $log->id]);
+        });
+    }
 
     public function content()
     {

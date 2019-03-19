@@ -24,8 +24,7 @@ class Http extends Handle
         if (App::$debug) {
             return parent::render($e);
         }else{
-            //此处定义自己的返回方法
-            return failed('系统错误，请稍后再试！');
+            return '系统错误，请稍后再试！';
         }
     }
 

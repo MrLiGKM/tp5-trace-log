@@ -1,7 +1,7 @@
 <?php
 namespace trace\model;
 
-use app\common\model\Model;
+use think\Model;
 
 class TraceLogData extends Model
 {
