@@ -1,0 +1,21 @@
+{
+    "name": "mrlig/tracelog",
+    "description": "TP5调试日志记录",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "LiGang",
+            "email": "308529965@qq.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "php": ">=7.0.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "mrlig\\tracelog\\": "mrlig/tracelog"
+        }
+    }
+}

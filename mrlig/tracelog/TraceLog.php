@@ -1,10 +1,10 @@
 <?php
-namespace trace;
+namespace mrlig\tracelog;
 
 use think\Debug;
 use think\Db;
-use trace\model\TraceLogList;
-use trace\model\TraceLogData;
+use mrlig\tracelog\model\TraceLogList;
+use mrlig\tracelog\model\TraceLogData;
 
 class TraceLog
 {

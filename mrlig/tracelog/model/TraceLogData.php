@@ -1,5 +1,5 @@
 <?php
-namespace trace\model;
+namespace mrlig\tracelog\model;
 
 use think\Model;
 

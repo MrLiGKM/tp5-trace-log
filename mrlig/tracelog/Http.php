@@ -1,10 +1,10 @@
 <?php
-namespace trace;
+namespace mrlig\tracelog;
 
 use Exception;
 use think\exception\Handle;
 use think\exception\HttpException;
-use trace\TraceLog;
+use mrlig\tracelog\TraceLog;
 use think\App;
 
 class Http extends Handle
