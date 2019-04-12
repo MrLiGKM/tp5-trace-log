@@ -8,6 +8,11 @@ use mrlig\tracelog\model\TraceLogData;
 
 class TraceLog
 {
+    public static function index()
+    {
+        echo 'hello';
+    }
+
     protected static $sql_info = ['runtime' => '0s', 'memory' => '0KB', 'sql' => []];
 
     public static function sql($remark)
