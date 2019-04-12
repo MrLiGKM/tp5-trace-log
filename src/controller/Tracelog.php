@@ -8,10 +8,7 @@ use think\Controller;
 
 class TraceLog extends Controller
 {
-    public function test()
-    {
-        return 222;
-    }
+    const TRACE_VIEW = VENDOR_PATH.'mrlig/tracelog/src/view/tracelog/';
 
     public function index($page = 1, $pageCount = 10, $type = 0, $route = '')
     {
@@ -31,7 +28,8 @@ class TraceLog extends Controller
         $query_count = clone $query;
         $count = $query_count->count('id');
         $list = $query->field(['update_time'], true)->page($page, $pageCount)->order('id DESC')->select();
-        return json(['list' => $list, 'count' => $count]);
+        return $this->fetch(SELF::TRACE_VIEW.'index.html');
+        return $this->returnSuccess(['list' => $list, 'count' => $count]);
     }
 
     public function detail()
@@ -39,10 +37,11 @@ class TraceLog extends Controller
         $id = input('param.id') ?? 0;
         $log = TraceLogList::get($id);
         if (!$log) {
-            sendError('记录不存在');
+            return json($log);
+            sendError();
         }
         $log->content;
-        sendSuccess('', $log);
+        return $this->returnSuccess($log);
     }
 
     public function delete()
@@ -50,20 +49,30 @@ class TraceLog extends Controller
         $id = input('param.id') ?? 0;
         $log = TraceLogList::get($id);
         if (!$log) {
-            sendError('记录不存在');
+            return $this->returnFailed('记录不存在');
         }
         if (!$log->delete()) {
-            sendError('删除失败');
+            return $this->returnFailed('删除失败');
         }
-        sendSuccess('删除成功');
+        return $this->returnSuccess();
     }
 
     public function clear()
     {
-        $sql1 = 'truncate cys_trace_log_list';
-        $sql2 = 'truncate cys_trace_log_data';
+        $sql1 = 'truncate trace_log_list';
+        $sql2 = 'truncate trace_log_data';
         Db::execute($sql1);
         Db::execute($sql2);
-        sendSuccess('清空成功');
+        return $this->returnSuccess();
+    }
+
+    private function returnSuccess($data = [], $message = '成功')
+    {
+        return json(['status' => 1, 'data' => $data, 'message' => $message]);
+    }
+
+    private function returnFailed($message = '失败')
+    {
+        return json(['status' => 0, 'message' => $message]);
     }
 }

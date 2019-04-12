@@ -1,6 +1,6 @@
 {
     "name": "mrlig/tracelog",
-    "description": "TP5调试日志记录",
+    "description": "TP5日志记录",
     "type": "project",
     "license": "MIT",
     "authors": [
@@ -15,7 +15,7 @@
     },
     "autoload": {
         "psr-4": {
-            "mrlig\\tracelog\\": "mrlig/tracelog"
+            "mrlig\\tracelog\\": "src"
         }
     }
 }
