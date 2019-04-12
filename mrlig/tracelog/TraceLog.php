@@ -8,11 +8,6 @@ use mrlig\tracelog\model\TraceLogData;
 
 class TraceLog
 {
-    public static function index()
-    {
-        echo 'hello';
-    }
-
     protected static $sql_info = ['runtime' => '0s', 'memory' => '0KB', 'sql' => []];
 
     public static function sql($remark)
@@ -63,6 +58,7 @@ class TraceLog
         $model->type = $type;
         $model->method = request()->method();
         $model->route = request()->baseUrl();
+        $model->ip = request()->ip();
         $model->position = $position;
         $model->line = $line;
         $content = new TraceLogData();
