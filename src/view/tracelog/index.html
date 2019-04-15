@@ -1,9 +1,306 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
     <head>
         <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+        <title>日志系统</title>
+        <link rel="stylesheet" type="text/css" href="//layui.hcwl520.com.cn/layui/css/layui.css?v=201801090202" />
     </head>
     <body>
-    <a href="http://www.baidu.com" >test</a>
+        <div class=" layui-layout-body layui-main">
+            <div id="detail"></div>
+            <div style="height:30px;clear:both;"></div>
+            <div class="layui-form layui-row layui-col-space10">
+                <div class="layui-col-xs2">
+                    <select name="type" id="type">
+                        <option value="0">全部类型</option>
+                        <option value="1">信息</option>
+                        <option value="2">警告</option>
+                        <option value="3">错误</option>
+                        <option value="4">SQL</option>
+                    </select> 
+                </div>
+                <div class="layui-col-xs5">
+                    <div class="layui-form-item">
+                          <input type="text" name="route" id="route" placeholder="请输入请求地址" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-col-xs2">
+                    <div class="layui-form-item">
+                          <input type="text" name="ip" id="ip" placeholder="请输入请求IP" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-col-xs3">
+                    <div class="layui-row">
+                        <div class="layui-col-xs4">
+                            <button class="layui-btn" onclick="search();">搜索</button>
+                        </div>
+                        <div class="layui-col-xs4 layui-col-md-offset4">
+                            <button class="layui-btn layui-btn-danger" onclick="clearLogs();">清空日志</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <table id="list" lay-filter="test"></table>
+            <div style="height:50px;clear:both;"></div>
+        </div>
+        <script src="//layui.hcwl520.com.cn/layui/layui.js?v=201801090202"></script>
+        <script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js?v=201801090202"></script>
+        <script>
+            var type = 0;
+            var route = '';
+            var ip = '';
+            layui.use(['table', 'laytpl'], function(){
+                var table = layui.table;
+                table.render({
+                    elem: '#list', //指定原始表格元素选择器（推荐id选择器）
+                    url: '/traceloglist/list',
+                    where: {type: type, route: route, ip: ip},
+                    parseData: function(res){ //res 即为原始返回的数据
+                        return {
+                            "code": res.status, //解析接口状态
+                            "msg": res.message, //解析提示文本
+                            "count": res.data.count, //解析数据长度
+                            "data": res.data.list //解析数据列表
+                        };
+                    },
+                    cols:  [[ //标题栏
+                        {field: 'id', title: 'ID', width: 60, align: 'center'},
+                        {field: 'type', title: '类型', width: 70, align: 'center', templet: function (d){
+                            switch (d.type) {
+                                case '信息':
+                                    return '<span class="layui-badge layui-bg-blue">信息</span>'
+                                    break;
+                                case '警告':
+                                    return '<span class="layui-badge layui-bg-orange">警告</span>'
+                                    break;
+                                case '错误':
+                                    return '<span class="layui-badge">错误</span>'
+                                    break;
+                                case 'SQL':
+                                    return '<span class="layui-badge layui-bg-green">SQL</span>'
+                                    break; 
+                            }
+                        }},
+                        {field: 'method', title: '方式', width: 90, align: 'center', templet: function (d){
+                            return '<span class="layui-badge layui-bg-cyan">' + d.method + '</span>';
+                        }},
+                        {field: 'route', title: '请求地址', align: 'center'},
+                        {field: 'position', title: '方法位置', align: 'center'},
+                        {field: 'line', title: '行数', width: 60, align: 'center', templet: function (d) {
+                            return '<span class="layui-badge layui-bg-green">' + d.line + '</span>';
+                        }},
+                        {field: 'ip', title: '请求IP', width: 140, align: 'center'},
+                        {field: 'create_time', title: '时间', width: 170, align: 'center'},
+                        {title: '操作', toolbar: "#tableOption", width:110, align: 'center'}  
+                    ]],
+                    page: true,
+                });
+            });
+            function del(id){
+                layer.msg('确定删除该日志？', {
+                  time: 0 //不自动关闭
+                  ,btn: ['确定', '取消']
+                  ,yes: function(index){
+                    layer.load(2);
+                    $.post('/traceloglist/del', {id:id}, function (data) {
+                        if (data.status == 1) {
+                            layer.msg(data.message, {time:2000});
+                        }else{
+                            layer.msg('删除成功', {time:600});
+                            setTimeout(function(){
+                                layer.close(index);
+                                layui.table.reload('list');
+                            }, 600);                        
+                        }
+                        layer.closeAll('loading');
+                    })
+                  }
+                });
+            }
+            function detail(id){
+                layer.load(2);
+                $.get('/traceloglist/' + id, function(data){
+                    layer.closeAll('loading');
+                    if (data.status == 1) {
+                        layer.msg(data.message, {time:2000});
+                    }else{
+                        var d = data.data;
+                        var getTpl = tracelogDetail.innerHTML
+                        ,view = document.getElementById('detail');
+                        layui.laytpl(getTpl).render(d, function(html){
+                          view.innerHTML = html;
+                        });
+                        layer.open({
+                          type: 1,
+                          title: '日志详情',
+                          closeBtn: 1,
+                          shadeClose: false,
+                          maxmin: true,
+                          skin: 'yourclass',
+                          area: '1000px',
+                          content: $('#detail'),
+                        });
+                    }
+                });
+            }
+            function search(){
+                type = $('#type option:selected').val();
+                route = $('#route').val();
+                ip = $('#ip').val();
+                reloadList();
+            }
+            function reloadList()
+            {
+                layui.table.reload('list', {
+                    where: {type: type, route: route, ip: ip}
+                });
+            }
+            function clearLogs(){
+                layer.confirm('确定清空所有日志？', {
+                  title: '清空日志',
+                  icon: 0,
+                  btn: ['确定','取消'] //按钮
+                }, function(index){
+                    layer.close(index);
+                    layer.load(2);
+                  $.post('/traceloglist/clear', function(data){
+                    if (data.status == 1) {
+                        layer.msg(data.message, {time:2000});
+                    }else{
+                        type : 0;
+                        route = ip = '';
+                        reloadList();                      
+                    }
+                    layer.closeAll('loading');
+                  });
+                });
+            }
+        </script>
+        <script type="text/javascript" id="tableOption">
+            <button class='layui-btn layui-btn-xs' onclick="detail({{d.id}})"><i class="layui-icon layui-icon-read"></i></button>
+            <button class='layui-btn layui-btn-danger layui-btn-xs' onclick="del({{d.id}})"><i class="layui-icon layui-icon-delete"></i></button>
+        </script>
+        <script type="text/html" id="tracelogDetail">
+            <div class="layui-row">
+                <div class="layui-col-md4">
+                    <fieldset class="layui-elem-field fieldset-height">
+                      <legend>日志id</legend>
+                      <div class="layui-field-box">
+                        <span class="layui-badge">{{d.id}}</span>
+                      </div>
+                    </fieldset>
+                </div>
+                <div class="layui-col-md4">
+                    <fieldset class="layui-elem-field fieldset-height">
+                      <legend>日志类型</legend>
+                      <div class="layui-field-box">
+                      {{# switch (d.type) {
+                        case '信息': }}
+                            <span class="layui-badge layui-bg-blue">信息</span>
+                      {{#       break;
+                        case '警告': }}
+                            <span class="layui-badge layui-bg-orange">警告</span>
+                      {{#       break;
+                        case '错误': }}
+                            <span class="layui-badge">错误</span>
+                      {{#       break;
+                        case 'SQL': }}
+                            <span class="layui-badge layui-bg-green">SQL</span>
+                      {{#       break;
+                      } }}  
+                      </div>
+                    </fieldset>
+                </div>
+                <div class="layui-col-md4">
+                    <fieldset class="layui-elem-field fieldset-height">
+                      <legend>请求方式</legend>
+                      <div class="layui-field-box">
+                        <span class="layui-badge layui-bg-cyan">{{d.method}}</span>
+                      </div>
+                    </fieldset>
+                </div>
+            </div>
+            <div class="layui-row">
+                <div class="layui-col-md4">
+                    <fieldset class="layui-elem-field fieldset-height">
+                      <legend>日志位置行数</legend>
+                      <div class="layui-field-box">
+                        <span class="layui-badge layui-bg-green">{{d.line}}</span>
+                      </div>
+                    </fieldset>
+                </div>
+                <div class="layui-col-md4">
+                    <fieldset class="layui-elem-field fieldset-height">
+                      <legend>请求IP</legend>
+                      <div class="layui-field-box">
+                        {{d.ip}}
+                      </div>
+                    </fieldset>
+                </div>
+                <div class="layui-col-md4">
+                    <fieldset class="layui-elem-field fieldset-height">
+                      <legend>日志时间</legend>
+                      <div class="layui-field-box">
+                        {{d.create_time}}
+                      </div>
+                    </fieldset>
+                </div>
+            </div>
+            <div class="layui-row">
+                <div class="layui-col-md6">
+                    <fieldset class="layui-elem-field fieldset-height">
+                      <legend>请求地址</legend>
+                      <div class="layui-field-box">
+                            {{d.route}}
+                      </div>
+                    </fieldset>
+                </div>
+                <div class="layui-col-md6">
+                    <fieldset class="layui-elem-field fieldset-height">
+                      <legend>请求调用方法</legend>
+                      <div class="layui-field-box">
+                        {{d.position}} 
+                      </div>
+                    </fieldset>
+                </div>
+            </div>
+            <div class="layui-row">
+                <div class="layui-col-md12">
+                    <fieldset class="layui-elem-field">
+                      <legend>请求参数</legend>
+                      <div class="layui-field-box">
+                      {{#  layui.each(d.content.params, function(index, item){ }}
+                          <div class="layui-row">
+                              <div class="layui-col-md1" style="font-weight: bolder;">
+                                  {{index}}：
+                              </div>
+                              <div class="layui-col-md11">
+                              {{#  layui.each(item, function(key, param){ }}
+                              {{key}} => {{param}} <br />
+                              {{# }) }}
+                              </div>
+                          </div>
+                      {{# }) }}
+                      </div>
+                    </fieldset>
+                </div>
+            </div>
+            <div class="layui-row">
+                <div class="layui-col-md12">
+                    <fieldset class="layui-elem-field">
+                      <legend>日志内容</legend>
+                      <div class="layui-field-box">
+                        {{d.content.message}}
+                      </div>
+                    </fieldset>
+                </div>
+            </div>
+        </script>
+        <style type="text/css" media="screen">
+            #detail{width:calc(100% - 20px);display: none;padding: 30px 10px;}
+            .fieldset-height{height:60px;}
+            #detail legend{font-size: 16px;}
+        </style>
     </body>
 </html>

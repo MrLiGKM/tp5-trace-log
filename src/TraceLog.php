@@ -62,7 +62,12 @@ class TraceLog
         $model->position = $position;
         $model->line = $line;
         $content = new TraceLogData();
-        $content->params = json_encode(['GET' => request()->get(), 'POST' => request()->post(), 'PUT' => request()->put(), 'DELETE' => request()->delete()]);
+        $params = [];
+        !empty(request()->get()) && $params['GET'] = request()->get();
+        !empty(request()->post()) && $params['POST'] = request()->post();
+        !empty(request()->put()) && $params['PUT'] = request()->put();
+        !empty(request()->delete()) && $params['DELETE'] = request()->delete();
+        $content->params = json_encode($params);
         $content->message = json_encode($message);
         $model->content = $content;
         $model->together('content')->save();

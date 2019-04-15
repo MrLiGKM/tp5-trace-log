@@ -10,13 +10,22 @@ class TraceLog extends Controller
 {
     const TRACE_VIEW = VENDOR_PATH.'mrlig/tracelog/src/view/tracelog/';
 
-    public function index($page = 1, $pageCount = 10, $type = 0, $route = '')
+    public function index()
+    {
+        return $this->fetch(SELF::TRACE_VIEW.'index.html');
+    }
+
+    public function list($page = 1, $limit = 10, $type = 0, $route = '', $ip = '')
     {
         $query = new TraceLogList;
         $where = $bind = [];
         if ($type) {
             $where['type'] = ['=', ':type'];
             $bind['type'] = $type;
+        }
+        if ($ip) {
+            $where['ip'] = ['=', ':ip'];
+            $bind['ip'] = $ip;
         }
         if ($route) {
             $where['route'] = ['like', ':route'];
@@ -27,8 +36,7 @@ class TraceLog extends Controller
         }
         $query_count = clone $query;
         $count = $query_count->count('id');
-        $list = $query->field(['update_time'], true)->page($page, $pageCount)->order('id DESC')->select();
-        return $this->fetch(SELF::TRACE_VIEW.'index.html');
+        $list = $query->field(['update_time'], true)->page($page, $limit)->order('id DESC')->select();
         return $this->returnSuccess(['list' => $list, 'count' => $count]);
     }
 
@@ -37,10 +45,10 @@ class TraceLog extends Controller
         $id = input('param.id') ?? 0;
         $log = TraceLogList::get($id);
         if (!$log) {
-            return json($log);
-            sendError();
+            return $this->returnFailed('记录不存在');
         }
         $log->content;
+        $log->content->params = json_decode($log->content->params, true);
         return $this->returnSuccess($log);
     }
 
@@ -68,11 +76,11 @@ class TraceLog extends Controller
 
     private function returnSuccess($data = [], $message = '成功')
     {
-        return json(['status' => 1, 'data' => $data, 'message' => $message]);
+        return json(['status' => 0, 'data' => $data, 'message' => $message]);
     }
 
     private function returnFailed($message = '失败')
     {
-        return json(['status' => 0, 'message' => $message]);
+        return json(['status' => 1, 'message' => $message]);
     }
 }
