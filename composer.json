@@ -16,7 +16,6 @@
     "autoload": {
         "psr-4": {
             "mrlig\\tracelog\\": "src"
-        },
-        "files": ["src/config.php"]
+        }
     }
 }
