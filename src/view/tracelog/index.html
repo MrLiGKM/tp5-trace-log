@@ -5,6 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
         <title>日志系统</title>
         <link rel="stylesheet" type="text/css" href="//layui.hcwl520.com.cn/layui/css/layui.css?v=201801090202" />
+        <link rel="stylesheet" type="text/css" href="https://cdn.bootcss.com/jquery-jsonview/1.2.3/jquery.jsonview.css?v=201801090202" />
     </head>
     <body>
         <div class=" layui-layout-body layui-main">
@@ -46,7 +47,9 @@
         </div>
         <script src="//layui.hcwl520.com.cn/layui/layui.js?v=201801090202"></script>
         <script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js?v=201801090202"></script>
+        <script src="https://cdn.bootcss.com/jquery-jsonview/1.2.3/jquery.jsonview.js"></script>
         <script>
+            var jsonMessage;
             var type = 0;
             var route = '';
             var ip = '';
@@ -130,6 +133,7 @@
                         ,view = document.getElementById('detail');
                         layui.laytpl(getTpl).render(d, function(html){
                           view.innerHTML = html;
+                          jsonMessage = d.content.message;
                         });
                         layer.open({
                           type: 1,
@@ -138,7 +142,7 @@
                           shadeClose: false,
                           maxmin: true,
                           skin: 'yourclass',
-                          area: '1000px',
+                          area: ['1000px', '650px'],
                           content: $('#detail'),
                         });
                     }
@@ -175,6 +179,9 @@
                     layer.closeAll('loading');
                   });
                 });
+            }
+            function jsonTransformation(){
+              $('#json-renderer').JSONView(jsonMessage);
             }
         </script>
         <script type="text/javascript" id="tableOption">
@@ -289,9 +296,10 @@
             <div class="layui-row">
                 <div class="layui-col-md12">
                     <fieldset class="layui-elem-field">
-                      <legend>日志内容</legend>
-                      <div class="layui-field-box">
-                        {{d.content.message}}
+                      <legend>日志内容&nbsp;&nbsp;&nbsp;<button class="layui-btn layui-btn-normal layui-btn-sm" onclick="jsonTransformation();">格式化</button></legend>
+                      <div class="layui-field-box" style="word-break: break-all;word-wrap: break-word;">
+                      <pre id="json-renderer">{{d.content.message}}</pre>
+                        
                       </div>
                     </fieldset>
                 </div>
