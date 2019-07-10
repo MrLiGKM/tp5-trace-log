@@ -9,11 +9,16 @@ use mrlig\tracelog\model\TraceLogData;
 class TraceLog
 {
     protected static $sql_info = ['runtime' => '0s', 'memory' => '0KB', 'sql' => []];
+    protected static $database_debug = false;
 
     public static function sql($remark)
     {
         switch ($remark) {
             case 'begin':
+                    if (!config('database.debug')) {
+                        self::$database_debug = true;
+                        config('database.debug', true);
+                    }
                     self::traceSql();
                     return Debug::remark('begin');
                 break;
@@ -22,6 +27,10 @@ class TraceLog
                     self::$sql_info['runtime'] = Debug::getRangeTime('begin','end').'s';
                     self::$sql_info['memory'] = Debug::getRangeMem('begin','end');
                     self::addTraceLog(TraceLogList::TYPE_SQL, self::$sql_info);
+                    if (self::$database_debug) {
+                        self::$database_debug = false;
+                        config('database.debug', false);
+                    }
                 break;
         }
     }

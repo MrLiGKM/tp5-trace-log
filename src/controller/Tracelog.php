@@ -10,6 +10,23 @@ class TraceLog extends Controller
 {
     const TRACE_VIEW = VENDOR_PATH.'mrlig/tracelog/src/view/tracelog/';
 
+    protected function _initialize()
+    {
+        $_token = config('trace_log_session');
+        if (!session('?trace_log_session')) {
+            $token = $this->request->get('token');
+            if ($token != $_token) {
+                echo '非法访问';exit;
+            }else{
+                session('trace_log_session', $token);
+            }
+        }else{
+            if (session('trace_log_session') != $_token) {
+                echo '非法访问';exit;
+            }
+        }
+    }
+
     public function index()
     {
         return $this->fetch(SELF::TRACE_VIEW.'index.html');
